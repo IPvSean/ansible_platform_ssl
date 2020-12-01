@@ -2,7 +2,7 @@
 - name: update SSL cert
   hosts: localhost
   connection: local
-  become: false
+  become: true
   gather_facts: true
   tasks:
     # directions found here https://certbot.eff.org/lets-encrypt/centosrhel8-other
