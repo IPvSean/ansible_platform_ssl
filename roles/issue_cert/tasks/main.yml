@@ -31,6 +31,14 @@
       debug:
         var: issue_cert
 
+    - name: Extract certificate path
+      set_fact:
+        certificate_path: "{{ stdout_lines | select('match', '^Certificate is saved at:.*') | first | regex_replace('^Certificate is saved at: ', '') }}"
+
+    - name:  Print out certificate_path
+      debug: 
+        var: certificate_path
+
     - name: Move SSL Key to /etc/tower/tower.key
       copy:
         remote_src: true
