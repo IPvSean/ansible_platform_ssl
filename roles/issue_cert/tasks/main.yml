@@ -47,7 +47,7 @@
       block: 
         - name: List directories
           find:
-            paths: "/path/to/search"
+            paths: "/etc/letsencrypt/live"
             file_type: directory
           register: dirs
 
