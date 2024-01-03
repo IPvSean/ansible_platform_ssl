@@ -1,7 +1,7 @@
 ---
 - name: Check for SSL certificate
   uri:
-    url: "{{ dns_name }}"
+    url: "https://{{ dns_name }}"
     method: HEAD
     return_content: no
     status_code: 200
