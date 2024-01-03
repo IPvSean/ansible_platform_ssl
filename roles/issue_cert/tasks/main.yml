@@ -53,8 +53,7 @@
 
         - name: Sort directories by modification time and get the newest
           set_fact:
-            newest_directory: "{{ (dirs.files | sort(attribute='mtime', reverse=true) | first).path }}"
-
+            certificate_path: "{{ (dirs.files | sort(attribute='mtime', reverse=true) | first).path }}"
 
         - name: Output the newest directory
           debug:
