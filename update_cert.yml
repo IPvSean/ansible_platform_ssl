@@ -1,12 +1,12 @@
 ---
-- name: update SSL cert
+- name: Update SSL cert
   hosts: localhost
   connection: local
   become: true
   gather_facts: false
   tasks:
-    - name: update the cert
-      include_role:
-        name: issue_cert 
+    - name: Update the cert
+      ansible.builtin.include_role:
+        name: issue_cert
       vars:
-        dns_name: "ansible.demoredhat.com"
+        issue_cert_dns_name: "ansible.demoredhat.com"

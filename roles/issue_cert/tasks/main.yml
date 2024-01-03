@@ -1,7 +1,7 @@
 ---
 - name: Check for SSL certificate
   uri:
-    url: "https://{{ dns_name }}"
+    url: "https://{{ issue_cert_dns_name }}"
     method: HEAD
     return_content: no
     status_code: 200
@@ -11,7 +11,7 @@
 
 - name: Display result
   debug:
-    msg: "SSL certificate is present and valid for {{ dns_name }}"
+    msg: "SSL certificate is present and valid for {{ issue_cert_dns_name }}"
   when: website_response.status is defined and website_response.status == 200
 
 - name: display SSL error and issue new cert
@@ -19,7 +19,7 @@
   block: 
     - name: Display error message
       debug:
-        msg: "SSL certificate is not present or invalid for {{ dns_name }}"
+        msg: "SSL certificate is not present or invalid for {{ issue_cert_dns_name }}"
 
     - name: Include tasks to issue new SSL cert with letsencrypt
       ansible.builtin.include_tasks: 10_issue_cert.yml

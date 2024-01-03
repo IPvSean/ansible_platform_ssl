@@ -18,7 +18,7 @@
   block:
     # If this fails check out status of certbot: https://letsencrypt.status.io/
     - name: Issue SSL cert with certbot
-      ansible.builtin.command: certbot certonly --no-bootstrap --standalone -d {{ dns_name }} --email ansible-network@redhat.com --noninteractive --agree-tos
+      ansible.builtin.command: certbot certonly --no-bootstrap --standalone -d {{ issue_cert_dns_name }} --email ansible-network@redhat.com --noninteractive --agree-tos
       register: issue_cert
       until: issue_cert is not failed
       retries: 5
