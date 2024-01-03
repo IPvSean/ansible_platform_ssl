@@ -1,84 +1,25 @@
 ---
-  # directions found here https://certbot.eff.org/lets-encrypt/centosrhel8-other
-- name: install certbot if not already installed
-  ansible.builtin.dnf:
-    name: certbot
-    state: present
-    disable_gpg_check: true
+- name: Check for SSL certificate
+  uri:
+    url: "{{ website_url }}"
+    method: HEAD
+    return_content: no
+    status_code: 200
+    timeout: 10
+  register: website_response
+  ignore_errors: yes
 
-# # https://docs.ansible.com/ansible-tower/latest/html/administration/init_script.html
-# - name: turn off Ansible Tower
-#   shell: ansible-tower-service stop
+- name: Display result
+  debug:
+    msg: "SSL certificate is present and valid for {{ website_url }}"
+  when: website_response.status is defined and website_response.status == 200
 
-- name: make sure Automation Controller nginx is stopped
-  service:
-    name: nginx
-    state: stopped
-  register: stop_controller
-  until: stop_controller is not failed
-  retries: 5
-
-- name: SSL cert block
-  block:
-    # If this fails check out status of certbot: https://letsencrypt.status.io/
-    - name: ISSUE CERT
-      shell: certbot certonly --no-bootstrap --standalone -d {{ dns_name }} --email ansible-network@redhat.com --noninteractive --agree-tos
-      register: issue_cert
-      until: issue_cert is not failed
-      retries: 5
-
-    - name: debug issue_cert output
+- name: Display SSL error and issue new cert
+  when: website_response.status is not defined or website_response.status != 200
+  block: 
+    - name: Display error message
       debug:
-        var: issue_cert
+        msg: "SSL certificate is not present or invalid for {{ website_url }}"
 
-    - name: Extract certificate path when newly created
-      when: "'Certificate not yet' not in issue_cert.stdout_lines | join(' ')"
-      block:
-      - name: Set fact for certificate path
-        set_fact:
-          certificate_path: "{{ issue_cert.stdout_lines | select('match', '^Certificate is saved at:.*') | first | regex_replace('^Certificate is saved at: ', '') }}"
-
-      - name:  Print out certificate_path
-        debug: 
-          var: certificate_path
-
-    - name: Extract certificate path for when already renewed in /etc/letsencrypt/live
-      when: "'Certificate not yet' in issue_cert.stdout_lines | join(' ')"
-      block: 
-        - name: List directories
-          find:
-            paths: "/etc/letsencrypt/live"
-            file_type: directory
-          register: dirs
-
-        - name: Sort directories by modification time and get the newest
-          set_fact:
-            certificate_path: "{{ (dirs.files | sort(attribute='mtime', reverse=true) | first).path }}"
-
-        - name: Output the newest directory
-          debug:
-            msg: "Newest directory is {{ certificate_path }}"          
-
-    - name: Move SSL Key to /etc/tower/tower.key
-      copy:
-        remote_src: true
-        src: "{{ certificate_path }}/privkey.pem"
-        dest: /etc/tower/tower.key
-
-    - name: Retrieve newl cert.pem from /etc/letsencrypt/live and store in variable generated_cert
-      slurp:
-        src: "{{ certificate_path }}/cert.pem"
-      register: generated_cert
-
-    - name: Combine generated_cert and intermediate cert and move to /etc/tower/tower.cert
-      template:
-        src: combined_cert.j2
-        dest: /etc/tower/tower.cert
-
-- name: make sure Automation Controller nginx is started
-  service:
-    name: nginx
-    state: started
-  register: stop_controller
-  until: stop_controller is not failed
-  retries: 5
+    - name: Include tasks to issue new SSL cert with letsencrypt
+      ansible.builtin.include_tasks: 10_issue_cert.yml
