@@ -1,14 +1,22 @@
 ---
   # directions found here https://certbot.eff.org/lets-encrypt/centosrhel8-other
 - name: install certbot if not already installed
-  dnf:
+  ansible.builtin.dnf:
     name: certbot
     state: present
     disable_gpg_check: true
 
-# https://docs.ansible.com/ansible-tower/latest/html/administration/init_script.html
-- name: turn off Ansible Tower
-  shell: ansible-tower-service stop
+# # https://docs.ansible.com/ansible-tower/latest/html/administration/init_script.html
+# - name: turn off Ansible Tower
+#   shell: ansible-tower-service stop
+
+- name: make sure Automation Controller nginx is stopped
+  service:
+    name: nginx
+    state: stopped
+  register: stop_controller
+  until: stop_controller is not failed
+  retries: 5
 
 - name: SSL cert block
   block:
@@ -19,24 +27,30 @@
       until: issue_cert is not failed
       retries: 5
 
-    - name: MOVE SSL KEY
+    - name: debug issue_cert output
+      debug:
+        var: issue_cert
+
+    - name: Move SSL Key to /etc/tower/tower.key
       copy:
         remote_src: true
         src: "/etc/letsencrypt/live/{{ dns_name }}/privkey.pem"
         dest: /etc/tower/tower.key
 
-    - name: GRAB SPECIFIC SSL CERT
+    - name: Retrieve newl cert.pem from /etc/letsencrypt/live and store in variable generated_cert
       slurp:
         src: "/etc/letsencrypt/live/{{ dns_name }}/cert.pem"
-      register: intermediate_cert
+      register: generated_cert
 
-    - name: COMBINE SPECIFIC AND INTERMEDIATE CERT
+    - name: Combine generated_cert and intermediate cert and move to /etc/tower/tower.cert
       template:
         src: combined_cert.j2
         dest: /etc/tower/tower.cert
 
-- name: turn on tower
-  shell: ansible-tower-service start
-  register: install_tower
-  until: install_tower is not failed
+- name: make sure Automation Controller nginx is started
+  service:
+    name: nginx
+    state: started
+  register: stop_controller
+  until: stop_controller is not failed
   retries: 5

@@ -8,3 +8,5 @@
     - name: update the cert
       include_role:
         name: issue_cert 
+      vars:
+        dns_name: "ansible.demoredhat.com"
