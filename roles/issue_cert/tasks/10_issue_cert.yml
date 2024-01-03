@@ -1,13 +1,13 @@
 ---
   # directions found here https://certbot.eff.org/lets-encrypt/centosrhel8-other
-- name: install certbot if not already installed
+- name: Install certbot if not already installed
   ansible.builtin.dnf:
     name: certbot
     state: present
     disable_gpg_check: true
 
-- name: make sure Automation Controller nginx is stopped
-  service:
+- name: Make sure Automation Controller nginx is stopped
+  ansible.builtin.service:
     name: nginx
     state: stopped
   register: stop_controller
@@ -17,62 +17,69 @@
 - name: SSL cert block
   block:
     # If this fails check out status of certbot: https://letsencrypt.status.io/
-    - name: ISSUE CERT
-      shell: certbot certonly --no-bootstrap --standalone -d {{ dns_name }} --email ansible-network@redhat.com --noninteractive --agree-tos
+    - name: Issue SSL cert with certbot
+      ansible.builtin.command: certbot certonly --no-bootstrap --standalone -d {{ dns_name }} --email ansible-network@redhat.com --noninteractive --agree-tos
       register: issue_cert
       until: issue_cert is not failed
       retries: 5
+      changed_when: "'Successfully received certificate' in issue_cert.stdout"
 
-    - name: debug issue_cert output
-      debug:
+    - name: Debug issue_cert output
+      ansible.builtin.debug:
         var: issue_cert
 
     - name: Extract certificate path when newly created
       when: "'Certificate not yet' not in issue_cert.stdout_lines | join(' ')"
       block:
-      - name: Set fact for certificate path
-        set_fact:
-          certificate_path: "{{ issue_cert.stdout_lines | select('match', '^Certificate is saved at:.*') | first | regex_replace('^Certificate is saved at: ', '') }}"
+        - name: Set fact for certificate path
+          ansible.builtin.set_fact:
+            certificate_path: >
+              "{{ issue_cert.stdout_lines
+              | select('match', '^Certificate is saved at:.*')
+              | first
+              | regex_replace('^Certificate is saved at: ', '') }}"
 
-      - name:  Print out certificate_path
-        debug: 
-          var: certificate_path
+        - name: Print out certificate_path
+          ansible.builtin.debug:
+            var: certificate_path
 
     - name: Extract certificate path for when already renewed in /etc/letsencrypt/live
       when: "'Certificate not yet' in issue_cert.stdout_lines | join(' ')"
-      block: 
+      block:
         - name: List directories
-          find:
+          ansible.builtin.find:
             paths: "/etc/letsencrypt/live"
             file_type: directory
           register: dirs
 
         - name: Sort directories by modification time and get the newest
-          set_fact:
+          ansible.builtin.set_fact:
             certificate_path: "{{ (dirs.files | sort(attribute='mtime', reverse=true) | first).path }}"
 
         - name: Output the newest directory
-          debug:
-            msg: "Newest directory is {{ certificate_path }}"          
+          ansible.builtin.debug:
+            msg: "Newest directory is {{ certificate_path }}"
 
     - name: Move SSL Key to /etc/tower/tower.key
-      copy:
+      ansible.builtin.copy:
         remote_src: true
         src: "{{ certificate_path }}/privkey.pem"
         dest: /etc/tower/tower.key
+        mode: '0644'
 
     - name: Retrieve newl cert.pem from /etc/letsencrypt/live and store in variable generated_cert
-      slurp:
+      ansible.builtin.slurp:
         src: "{{ certificate_path }}/cert.pem"
       register: generated_cert
 
     - name: Combine generated_cert and intermediate cert and move to /etc/tower/tower.cert
-      template:
+      ansible.builtin.template:
         src: combined_cert.j2
         dest: /etc/tower/tower.cert
+        mode: '0644'
 
-- name: make sure Automation Controller nginx is started
-  service:
+- name: Make sure Automation Controller nginx is started
+  ansible.builtin.service:
     name: nginx
     state: started
   register: stop_controller

@@ -14,7 +14,7 @@
     msg: "SSL certificate is present and valid for {{ dns_name }}"
   when: website_response.status is defined and website_response.status == 200
 
-- name: Display SSL error and issue new cert
+- name: display SSL error and issue new cert
   when: website_response.status is not defined or website_response.status != 200
   block: 
     - name: Display error message
