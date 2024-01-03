@@ -31,10 +31,9 @@
       debug:
         var: issue_cert
 
-    - name: Extract certificate path
+    - name: Extract certificate path when newly created
       when: "'Certificate not yet' not in issue_cert.stdout_lines | join(' ')"
       block:
-
       - name: Set fact for certificate path
         set_fact:
           certificate_path: "{{ issue_cert.stdout_lines | select('match', '^Certificate is saved at:.*') | first | regex_replace('^Certificate is saved at: ', '') }}"
@@ -42,6 +41,23 @@
       - name:  Print out certificate_path
         debug: 
           var: certificate_path
+
+    - name: Extract certificate path for when already renewed in /etc/letsencrypt/live
+      when: "'Certificate not yet' in issue_cert.stdout_lines | join(' ')"
+      block: 
+        - name: List directories
+          find:
+            paths: "/path/to/search"
+            file_type: directory
+          register: dirs
+
+        - name: Sort directories by modification time and get the newest
+          set_fact:
+            newest_directory: "{{ dirs.files | sort(attribute='mtime', reverse=true) | first }}"
+
+        - name: Output the newest directory
+          debug:
+            msg: "Newest directory is {{ newest_directory.path }}"          
 
     - name: Move SSL Key to /etc/tower/tower.key
       copy:
