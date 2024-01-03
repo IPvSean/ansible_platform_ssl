@@ -53,21 +53,22 @@
 
         - name: Sort directories by modification time and get the newest
           set_fact:
-            newest_directory: "{{ dirs.files | sort(attribute='mtime', reverse=true) | first }}"
+            newest_directory: "{{ (dirs.files | sort(attribute='mtime', reverse=true) | first).path }}"
+
 
         - name: Output the newest directory
           debug:
-            msg: "Newest directory is {{ newest_directory.path }}"          
+            msg: "Newest directory is {{ certificate_path }}"          
 
     - name: Move SSL Key to /etc/tower/tower.key
       copy:
         remote_src: true
-        src: "/etc/letsencrypt/live/{{ dns_name }}/privkey.pem"
+        src: "{{ certificate_path }}/privkey.pem"
         dest: /etc/tower/tower.key
 
     - name: Retrieve newl cert.pem from /etc/letsencrypt/live and store in variable generated_cert
       slurp:
-        src: "/etc/letsencrypt/live/{{ dns_name }}/cert.pem"
+        src: "{{ certificate_path }}/cert.pem"
       register: generated_cert
 
     - name: Combine generated_cert and intermediate cert and move to /etc/tower/tower.cert
