@@ -1,24 +1,24 @@
 ---
 - name: Check for SSL certificate
-  uri:
+  ansible.builtin.uri:
     url: "https://{{ issue_cert_dns_name }}"
     method: HEAD
-    return_content: no
+    return_content: false
     status_code: 200
     timeout: 10
   register: website_response
-  ignore_errors: yes
+  ignore_errors: true
 
 - name: Display result
-  debug:
+  ansible.builtin.debug:
     msg: "SSL certificate is present and valid for {{ issue_cert_dns_name }}"
   when: website_response.status is defined and website_response.status == 200
 
-- name: display SSL error and issue new cert
+- name: Display SSL error and issue new cert
   when: website_response.status is not defined or website_response.status != 200
-  block: 
+  block:
     - name: Display error message
-      debug:
+      ansible.builtin.debug:
         msg: "SSL certificate is not present or invalid for {{ issue_cert_dns_name }}"
 
     - name: Include tasks to issue new SSL cert with letsencrypt
