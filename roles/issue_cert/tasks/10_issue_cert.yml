@@ -56,9 +56,12 @@
             file_type: directory
           register: dirs
 
+        # - name: Sort directories by modification time and get the newest
+        #   ansible.builtin.set_fact:
+        #     certificate_path: "{{ (dirs.files | sort(attribute='mtime', reverse=true) | first).path }}"
         - name: Sort directories by modification time and get the newest
           ansible.builtin.set_fact:
-            certificate_path: "{{ (dirs.files | sort(attribute='mtime', reverse=true) | first).path }}"
+            certificate_path: "{{ ((dirs.files | sort(attribute='mtime', reverse=true) | first).path | trim).replace('\"', '') }}"
 
         - name: Output the newest directory
           ansible.builtin.debug:
