@@ -17,6 +17,10 @@
   register: controller_status
   ignore_errors: true
 
+- name: Debug eda_status
+  ansible.builtin.debug:
+    var: controller_status
+
 - name: Set running_service to automation-eda-controller if active
   set_fact:
     aap_component: "automation-eda-controller"
