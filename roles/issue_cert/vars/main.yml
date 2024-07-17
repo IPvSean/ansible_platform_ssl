@@ -1,8 +1,8 @@
 aap_component: ""
 controller_status:
-  status: "unknown"
+  state: "unknown"
 eda_status:
-  status: "unknown"
+  state: "unknown"
 automation-controller:
   cert: "/etc/tower/tower.cert"
   ssl_key: "/etc/tower/tower.key"
