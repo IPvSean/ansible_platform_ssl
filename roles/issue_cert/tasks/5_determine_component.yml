@@ -29,7 +29,9 @@
 - name: Set running_service to automation-controller if active
   set_fact:
     aap_component: "automation-controller"
-  when: controller_status.state == "started"
+  when:
+    - not controller_status.failed
+    - controller_status.state == "started"
 
 - name: Print which service is running
   debug:
