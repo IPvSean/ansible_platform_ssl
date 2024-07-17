@@ -13,13 +13,16 @@
   register: controller_status
   ignore_errors: true
 
-- name: Determine running service
-  ansible.builtin.set_fact:
-    aap_component: >-
-      {% if eda_status.status == "running" %}
-        automation-eda-controller
-      {% elif controller_status.status == "running" %}
-        automation-controller
-      {% else %}
-        none
-      {% endif %}
+- name: Set running_service to automation-eda-controller if active
+  set_fact:
+    aap_component: "automation-eda-controller"
+  when: eda_status.status == "running"
+
+- name: Set running_service to automation-controller if active
+  set_fact:
+    aap_component: "automation-controller"
+  when: controller_status.status == "running"
+
+- name: Print which service is running
+  debug:
+    msg: "The running service is {{ aap_component }}"
