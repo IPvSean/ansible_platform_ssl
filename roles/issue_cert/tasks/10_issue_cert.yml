@@ -38,11 +38,11 @@
         - name: Set fact for certificate path
           ansible.builtin.set_fact:
             certificate_path: >
-              "{{ issue_cert.stdout_lines
+              {{ issue_cert.stdout_lines
               | select('match', '^Certificate is saved at:.*')
               | first
               | regex_replace('^Certificate is saved at: ', '')
-              | regex_replace('/fullchain.pem$', '') }}"
+              | regex_replace('/fullchain.pem$', '') }}
 
         - name: Print out certificate_path
           ansible.builtin.debug:
