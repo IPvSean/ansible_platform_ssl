@@ -84,10 +84,11 @@
     - name: Combine generated_cert and intermediate cert and move to /etc/tower/tower.cert
       ansible.builtin.template:
         src: combined_cert.j2
-        dest: /etc/tower/tower.cert
+        # dest: /etc/tower/tower.cert
+        dest: "{{ lookup('vars', aap_component).cert }}"
         mode: '0644'
 
-- name: Make sure Automation Controller nginx is started
+- name: Make sure nginx is started
   ansible.builtin.service:
     name: nginx
     state: started
