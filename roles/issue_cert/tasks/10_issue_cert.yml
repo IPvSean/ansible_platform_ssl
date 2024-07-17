@@ -42,6 +42,7 @@
               | select('match', '^Certificate is saved at:.*')
               | first
               | regex_replace('^Certificate is saved at: ', '') }}"
+              | regex_replace('/fullchain.pem$', '') }}"
 
         - name: Print out certificate_path
           ansible.builtin.debug:
