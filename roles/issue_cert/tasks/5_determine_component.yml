@@ -24,7 +24,9 @@
 - name: Set running_service to automation-eda-controller if active
   set_fact:
     aap_component: "automation-eda-controller"
-  when: eda_status.state == "started"
+  when:
+    - not eda_status.failed
+    - eda_status.state == "started"
 
 - name: Set running_service to automation-controller if active
   set_fact:
