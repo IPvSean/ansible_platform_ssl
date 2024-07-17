@@ -1,7 +1,7 @@
 ---
 aap_component: ""
 controller_status:
-  state: "unknown"
+  state: unknown
 eda_status:
   state: "unknown"
 automation-controller:
