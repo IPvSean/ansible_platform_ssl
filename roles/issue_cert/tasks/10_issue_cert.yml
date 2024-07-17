@@ -68,14 +68,15 @@
           ansible.builtin.debug:
             msg: "Newest directory is {{ certificate_path }}"
 
-    - name: Move SSL Key to /etc/tower/tower.key
+    - name: Move SSL Key for NGINX config (example /etc/tower/tower.key)
       ansible.builtin.copy:
         remote_src: true
         src: "{{ certificate_path }}/privkey.pem"
-        dest: /etc/tower/tower.key
+        # dest: /etc/tower/tower.key
+        dest: "{{ lookup('vars', running_service).ssl_key }}"
         mode: '0644'
 
-    - name: Retrieve newl cert.pem from /etc/letsencrypt/live and store in variable generated_cert
+    - name: Retrieve new cert.pem from /etc/letsencrypt/live and store in variable generated_cert
       ansible.builtin.slurp:
         src: "{{ certificate_path }}/cert.pem"
       register: generated_cert

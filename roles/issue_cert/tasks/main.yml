@@ -22,4 +22,7 @@
         msg: "SSL certificate is not present or invalid for {{ issue_cert_dns_name }}"
 
     - name: Include tasks to issue new SSL cert with letsencrypt
+      ansible.builtin.include_tasks: 5_determine_component.yml
+
+    - name: Include tasks to issue new SSL cert with letsencrypt
       ansible.builtin.include_tasks: 10_issue_cert.yml

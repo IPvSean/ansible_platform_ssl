@@ -1,0 +1,6 @@
+automation-controller:
+  cert: "/etc/tower/tower.cert"
+  ssl_key: "/etc/tower/tower.key"
+automation-eda-controller:
+  cert: "/etc/ansible-automation-platform/eda/server.cert"
+  ssl_key: "/etc/ansible-automation-platform/eda/server.key"
