@@ -6,20 +6,12 @@
   register: eda_status
   ignore_errors: true
 
-- name: Debug eda_status
-  ansible.builtin.debug:
-    var: eda_status
-
 - name: Check if automation-controller.service is active
   ansible.builtin.systemd:
     name: automation-controller.service
     state: started
   register: controller_status
   ignore_errors: true
-
-- name: Debug eda_status
-  ansible.builtin.debug:
-    var: controller_status
 
 - name: Set running_service to automation-eda-controller if active
   set_fact:
@@ -38,5 +30,3 @@
 - name: Print which service is running
   debug:
     msg: "The running component is {{ aap_component }}"
-
-- fail:
