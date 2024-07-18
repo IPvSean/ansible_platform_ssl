@@ -13,12 +13,26 @@
   register: controller_status
   ignore_errors: true
 
+- name: Check if automation-controller.service is active
+  ansible.builtin.systemd:
+    name: pulpcore.service
+    state: started
+  register: hub_status
+  ignore_errors: true
+
 - name: Set running_service to automation-eda-controller if active
   set_fact:
     aap_component: "automation-eda-controller"
   when:
     - not eda_status.failed
     - eda_status.state == "started"
+
+- name: Set running_service to automation-private-hub if active
+  set_fact:
+    aap_component: "automation-private-hub"
+  when:
+    - not hub_status.failed
+    - hub_status.state == "started"
 
 - name: Set running_service to automation-controller if active
   set_fact:

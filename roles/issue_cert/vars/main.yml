@@ -6,3 +6,6 @@ automation-controller:
 automation-eda-controller:
   cert: "/etc/ansible-automation-platform/eda/server.cert"
   ssl_key: "/etc/ansible-automation-platform/eda/server.key"
+automation-private-hub:
+  cert: "/etc/pulp/certs/pulp_webserver.crt"
+  ssl_key: "/etc/pulp/certs/pulp_webserver.key"
