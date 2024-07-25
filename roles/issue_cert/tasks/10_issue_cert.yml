@@ -77,17 +77,13 @@
         dest: "{{ lookup('vars', aap_component).ssl_key }}"
         mode: '0644'
 
-    - name: Retrieve new cert.pem from /etc/letsencrypt/live and store in variable generated_cert
-      ansible.builtin.slurp:
-        src: "{{ certificate_path }}/cert.pem"
-      register: generated_cert
-
-    - name: Combine generated_cert and intermediate cert and move to /etc/tower/tower.cert
-      ansible.builtin.template:
-        src: combined_cert.j2
-        # dest: /etc/tower/tower.cert
+    - name: Move SSL Key for NGINX config (example /etc/tower/tower.key)
+      ansible.builtin.copy:
+        remote_src: true
+        src: "{{ certificate_path }}/fullchain.pem"
         dest: "{{ lookup('vars', aap_component).cert }}"
         mode: '0644'
+
 
 - name: Make sure nginx is started
   ansible.builtin.service:
